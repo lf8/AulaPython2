@@ -3,25 +3,22 @@
 import docker
 import argparse
 
-#client = docker.from_env()
-#get_all = client.containers.list(all)
-
 def criar_container(args):
-    client = docker.from_env()
+    client = conect_docker()
     executando = client.containers.run(args.imagem, args.comando)
     print(executando)
     return(executando)
 
 def listar_containers(args):
-    client = docker.from_env()
-    get_all = client.containers.list(all)
+    client = conect_docker()
+    get_all = todos_container()
     for cada_container in get_all:
         conectando = client.containers.get(cada_container.id)
         print ("O container da vez é o %s e ele utiliza a imagem %s e o comando %s" %(conectando.short_id, conectando.attrs['Config']['Image'], conectando.attrs['Config']['Cmd']))
 
 def procurar_container(args):
-    client = docker.from_env()
-    get_all = client.containers.list(all)
+    client = conect_docker()
+    get_all = todos_container()
     for cada_container in get_all:
         conectando = client.containers.get(cada_container.id)
         imagem_container = conectando.attrs['Config']['Image'].lower()
@@ -31,8 +28,8 @@ def procurar_container(args):
 
 def remover_container(args):
     #remover containers bindando abaixo de 1024
-    client = docker.from_env()
-    get_all = client.containers.list(all)
+    client = conect_docker()
+    get_all = todos_container()
     for cada_container in get_all:
         conectando = client.containers.get(cada_container.id)
         portas = conectando.attrs['HostConfig']['PortBindings']
@@ -44,6 +41,15 @@ def remover_container(args):
                     print("Removendo o container %s que esta escutando na porta %s e bindando no host %s" %(str(cada_container.short_id) , str(porta1), str(porta2)))
                     removendo = cada_container.remove(force=True)
                     return(removendo)
+
+def conect_docker():
+   client = docker.from_env()
+   return(client)
+
+def todos_container():
+    client = conect_docker()
+    get_all = client.containers.list(all)
+    return(get_all)
 
 parser = argparse.ArgumentParser(description="Docker-cli criado na aula de python")
 subparser = parser.add_subparsers()
@@ -69,3 +75,4 @@ remover_opt.set_defaults(func=remover_container)
 
 cmd = parser.parse_args()
 cmd.func(cmd)
+
